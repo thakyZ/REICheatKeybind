@@ -1,0 +1,30 @@
+{
+ "schemaVersion": 1,
+ "id": "reicheatkeybind",
+ "version": "${version}",
+ "name": "REI Cheat Keybind",
+ "description": "A mod to plugin into REI and add a keybind for the cheat feature.",
+ "authors": [
+  "thakyz"
+ ],
+ "contact": {
+  "website": "https://nekogaming.xyz/",
+  "repo": "https://github.com/thakyZ/REICheatKeybind"
+ },
+ "license": "MIT",
+ "icon": "assets/reicheatkeybind/icon.png",
+ "environment": "*",
+ "entrypoints": {
+  "modmenu": [
+   "me.shedaniel.rei.REIModMenuEntryPoint"
+  ]
+ },
+ "mixins": [
+  "reicheatkeybind.mixins.json"
+ ],
+ "depends": {
+  "fabricloader": ">=0.9.2+build.206",
+  "fabric": "*",
+  "minecraft": "1.16.2"
+ }
+}
