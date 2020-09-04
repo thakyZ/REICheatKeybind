@@ -9,7 +9,7 @@ public class REICheatKeybindConfig {
     public ModifierKeyCode keybind;
 
     public Config() {
-      keybind = ModifierKeyCode.of(InputUtil.fromTranslationKey("key.keyboard.keypad.divide"), Modifier.of(false, false, false));
+      keybind = ModifierKeyCode.of(InputUtil.fromName("key.keyboard.keypad.divide"), Modifier.of(false, false, false));
     }
   }
 }

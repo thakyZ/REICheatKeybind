@@ -1,6 +1,5 @@
 package xyz.nekogaming.mods.rei.reicheatkeybind.mixins;
 
-import me.shedaniel.rei.api.ConfigManager;
 import me.shedaniel.rei.api.ConfigObject;
 import me.shedaniel.rei.gui.ContainerScreenOverlay;
 import org.spongepowered.asm.mixin.Mixin;
@@ -17,7 +16,7 @@ public abstract class ContainerScreenMixin {
     if (ConfigObject.getInstance() instanceof ICustomConfig) {
       REICheatKeybindConfig.Config config = ((ICustomConfig) ConfigObject.getInstance()).RCK_getConfig();
       if (config.keybind.matchesKey(keyCode, scanCode)) {
-        ConfigManager.getInstance().getConfig().setCheating(!ConfigManager.getInstance().getConfig().isCheating());
+        ConfigObject.getInstance().setCheating(!ConfigObject.getInstance().isCheating());
       }
     }
   }
