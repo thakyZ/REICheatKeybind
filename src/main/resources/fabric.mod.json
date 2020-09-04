@@ -1,7 +1,7 @@
 {
  "schemaVersion": 1,
  "id": "reicheatkeybind",
- "version": "${version}",
+ "version": "${mod_version}",
  "name": "REI Cheat Keybind",
  "description": "A mod to plugin into REI and add a keybind for the cheat feature.",
  "authors": [
