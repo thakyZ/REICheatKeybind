@@ -16,7 +16,7 @@ public abstract class ContainerScreenMixin {
   public void keyPress(int keyCode, int scanCode, int modifiers, CallbackInfoReturnable<Boolean> cir) {
     if (ConfigObject.getInstance() instanceof ICustomConfig) {
       REICheatKeybindConfig.Config config = ((ICustomConfig) ConfigObject.getInstance()).RCK_getConfig();
-      if (config.RCK_keybind.matchesKey(keyCode, scanCode)) {
+      if (config.keybind.matchesKey(keyCode, scanCode)) {
         ConfigManager.getInstance().getConfig().setCheating(!ConfigManager.getInstance().getConfig().isCheating());
       }
     }

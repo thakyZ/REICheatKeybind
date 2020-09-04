@@ -13,10 +13,10 @@ import xyz.nekogaming.mods.rei.reicheatkeybind.api.REICheatKeybindConfig;
 public abstract class ConfigObjectMixin implements ConfigObject, ConfigData, ICustomConfig {
   @ConfigEntry.Category(REICheatKeybind.MODID)
   @ConfigEntry.Gui.TransitiveObject
-  public REICheatKeybindConfig.Config config = new REICheatKeybindConfig.Config();
+  public REICheatKeybindConfig.Config reicheatkeybind = new REICheatKeybindConfig.Config();
 
   @Override
   public REICheatKeybindConfig.Config RCK_getConfig() {
-    return config;
+    return reicheatkeybind;
   }
 }

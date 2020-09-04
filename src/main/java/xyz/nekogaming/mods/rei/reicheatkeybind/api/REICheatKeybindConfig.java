@@ -6,10 +6,10 @@ import net.minecraft.client.util.InputUtil;
 
 public class REICheatKeybindConfig {
   public static class Config {
-    public ModifierKeyCode RCK_keybind;
+    public ModifierKeyCode keybind;
 
     public Config() {
-      RCK_keybind = ModifierKeyCode.of(InputUtil.Type.KEYSYM.createFromCode(181), Modifier.of(false, false, false));
+      keybind = ModifierKeyCode.of(InputUtil.fromTranslationKey("key.keyboard.keypad.divide"), Modifier.of(false, false, false));
     }
   }
 }
