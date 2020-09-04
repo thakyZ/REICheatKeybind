@@ -1,15 +1,26 @@
 plugins {
+  id 'java'
+  id 'maven-publish'
   id 'fabric-loom' version '0.5-SNAPSHOT'
+  id 'com.matthewprenger.cursegradle' version '1.4.0' apply false
 }
 
-sourceCompatibility = JavaVersion.VERSION_1_8
-targetCompatibility = JavaVersion.VERSION_1_8
+java {
+  sourceCompatibility = JavaVersion.VERSION_1_8
+  targetCompatibility = JavaVersion.VERSION_1_8
+}
 
-archivesBaseName = project.archives_base_name
-version = project.mod_version
-group = project.maven_group
+group = maven_group
+archivesBaseName = mod_id
+version = "${mod_version}+${minecraft_version}"
+
+apply plugin: 'java'
+apply plugin: 'maven-publish'
+apply plugin: 'fabric-loom'
+apply plugin: 'com.matthewprenger.cursegradle'
 
 repositories {
+  mavenLocal()
   maven {
     name = "Modmuss50"
     url = "https://maven.modmuss50.me/"
@@ -19,30 +30,42 @@ repositories {
 
 dependencies {
   //to change the versions see the gradle.properties file
-  minecraft "com.mojang:minecraft:${project.minecraft_version}"
-  mappings "net.fabricmc:yarn:${project.yarn_mappings}:v2"
-  modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
+  minecraft "com.mojang:minecraft:${minecraft_version}"
+  mappings "net.fabricmc:yarn:${minecraft_version}+build.${yarn_version}:v2"
+  modImplementation "net.fabricmc:fabric-loader:${loader_version}"
 
   // Fabric API. This is technically optional, but you probably want it anyway.
-  modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
+  modImplementation "net.fabricmc.fabric-api:fabric-api:${fabric_api_version}"
 
 
   // PSA: Some older mods, compiled on Loom 0.2.1, might have outdated Maven POMs.
   // You may need to force-disable transitiveness on them.
-  modImplementation "me.shedaniel:RoughlyEnoughItems:${project.rei_version}"
-  modRuntime "curse.maven:roughly-searchable:${project.roughly_searchable_version}"
+  modImplementation "me.shedaniel:RoughlyEnoughItems:${rei_version}"
+  modRuntime "curse.maven:roughly-searchable:${roughly_searchable_version}"
+
+  compileOnly('com.google.code.findbugs:jsr305:3.0.2')
 }
 
 processResources {
-  inputs.property "version", project.version
-
+  inputs.properties(
+      'mod_version': mod_version,
+      'minecraft_version': minecraft_version,
+      'dep_minecraft_version': dep_minecraft_version,
+      'dep_loader_version': dep_loader_version,
+      'dep_fabric_version': dep_fabric_version
+  )
   from(sourceSets.main.resources.srcDirs) {
-    include "fabric.mod.json"
-    expand "version": project.version
+    include('fabric.mod.json')
+    expand(
+        'mod_version': mod_version,
+        'minecraft_version': minecraft_version,
+        'dep_minecraft_version': dep_minecraft_version,
+        'dep_loader_version': dep_loader_version,
+        'dep_fabric_version': dep_fabric_version
+    )
   }
-
   from(sourceSets.main.resources.srcDirs) {
-    exclude "fabric.mod.json"
+    exclude('fabric.mod.json')
   }
 }
 
@@ -68,4 +91,121 @@ jar {
   exclude ("**/*.blend1")
   exclude ("**/command_block_back.png")
   exclude ("**/command_block_icon.png")
+}
+sourcesJar {
+  from('LICENSE')
+}
+
+runClient {
+  args = ['--username', 'Dev']
+}
+
+tasks.withType(JavaCompile) {
+  options.setEncoding('UTF-8')
+}
+
+minecraft {
+  refmapName = "${mod_id}-refmap.json"
+  runDir = "${project.projectDir.getName()}/run/"
+}
+
+task release {
+  doLast {
+    def tagName = "${mod_id}-${mod_version}+${minecraft_version}"
+    def commit = "git rev-parse HEAD".execute().in.readLines().get(0)
+    if (extensions.getExtraProperties().has('artifactId')) {
+      def artifactId = extensions.getExtraProperties().get('artifactId')
+      def url = String.format(curseforge_url_template, curseforge_project_slug, artifactId)
+      if ('false'.equalsIgnoreCase(upload_debug)) {
+        "hub release create -t ${commit} -m ${tagName} -m ${url} ${tagName}".execute()
+        println "Created release for tag ${tagName} with message ${url}"
+      }
+    } else {
+      if ('false'.equalsIgnoreCase(upload_debug)) {
+        "hub release create -a ${projectDir.getName()}/build/libs/${tagName}.jar -a ${projectDir.getName()}/build/libs/${tagName}-sources.jar -m ${tagName} -m ${tagName} -t ${commit} ${tagName}".execute()
+        println "Created release for tag ${tagName} with message ${tagName}"
+      }
+    }
+  }
+}
+def curseforge_api_key = System.getenv('CURSEFORGE_API_KEY')
+
+if (curseforge_api_key != null && project.hasProperty('curseforge_project_id')) {
+  curseforge {
+    apiKey = curseforge_api_key
+    //noinspection GroovyAssignabilityCheck
+    project {
+      id = curseforge_project_id
+      changelogType = 'markdown'
+      changelog = file("${projectDir}/changelog.md")
+      releaseType = curseforge_release_type
+      addGameVersion curseforge_game_version
+      addGameVersion 'Fabric'
+      addGameVersion 'Java 8' // lets be honest, we're going to be stuck on java 8 for the next 5 years.
+      if (project.hasProperty('curseforge_required_dependencies') ||
+          project.hasProperty('curseforge_embedded_dependencies') ||
+          project.hasProperty('curseforge_optional_dependencies')) {
+        relations {
+          if (project.hasProperty('curseforge_required_dependencies')) {
+            curseforge_required_dependencies.tokenize(':').each { requiredDependency it }
+          }
+          if (project.hasProperty('curseforge_embedded_dependencies')) {
+            curseforge_embedded_dependencies.tokenize(':').each { embeddedLibrary it }
+          }
+          if (project.hasProperty('curseforge_optional_dependencies')) {
+            curseforge_optional_dependencies.tokenize(':').each { optionalDependency it }
+          }
+        }
+      }
+      mainArtifact(file("${project.buildDir}/libs/${mod_id}-${mod_version}+${minecraft_version}.jar")) {
+        displayName = "${mod_name} ${mod_version}+${minecraft_version}"
+      }
+      addArtifact(file("${project.buildDir}/libs/${mod_id}-${mod_version}+${minecraft_version}-sources.jar")) {
+        changelogType = 'markdown'
+        changelog = file("${project.rootDir}/sources-changelog.md")
+      }
+      afterEvaluate {
+        uploadTask.dependsOn('remapSourcesJar')
+      }
+    }
+    options {
+      forgeGradleIntegration = false
+      debug = 'true'.equalsIgnoreCase(upload_debug)
+    }
+  }
+  release {
+    dependsOn 'curseforge'
+    doFirst {
+      extensions.getExtraProperties().set('artifactId', curseforge.curseProjects[0].mainArtifact.getFileID())
+    }
+  }
+}
+else
+{
+  release {
+    dependsOn remapSourcesJar
+  }
+}
+
+publishing {
+  publications {
+    mavenJava(MavenPublication) {
+      artifactId = mod_id
+      artifact(remapJar) {
+        builtBy remapJar
+      }
+      artifact(sourcesJar) {
+        classifier = 'sources'
+        builtBy remapSourcesJar
+      }
+    }
+  }
+
+  repositories {
+    mavenLocal()
+  }
+}
+
+afterEvaluate {
+  file("${project.projectDir}/${project.projectDir.getName()}").deleteDir()
 }

@@ -1,7 +1,7 @@
 {
  "schemaVersion": 1,
  "id": "reicheatkeybind",
- "version": "${version}",
+ "version": "${mod_version}",
  "name": "REI Cheat Keybind",
  "description": "A mod to plugin into REI and add a keybind for the cheat feature.",
  "authors": [
@@ -23,8 +23,8 @@
   "reicheatkeybind.mixins.json"
  ],
  "depends": {
-  "fabricloader": ">=0.9.2+build.206",
+  "fabricloader": ">=${dep_loader_version}",
   "fabric": "*",
-  "minecraft": "1.16.2"
+  "minecraft": "${dep_minecraft_version}"
  }
 }
