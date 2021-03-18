@@ -3,7 +3,6 @@ plugins {
   id("maven-publish")
   id("java")
   id("java-library")
-  id("org.cadixdev.licenser") version("0.5.0")
   id("com.matthewprenger.cursegradle") version("1.4.0")
 }
 
@@ -20,7 +19,6 @@ version = "${mod_version}+${minecraft_version}"
 
 apply plugin: 'maven-publish'
 apply plugin: 'fabric-loom'
-apply plugin: 'org.cadixdev.licenser'
 
 repositories {
   maven { url "https://maven.modmuss50.me/" }
@@ -45,11 +43,6 @@ processResources {
       'dep_loader_version': dep_loader_version,
       'dep_fabric_version': dep_fabric_version
   )
-}
-
-license {
-  header rootProject.file('LICENSE')
-  include '**/*.java'
 }
 
 jar {
@@ -125,7 +118,7 @@ task releaseOnCf {
   }
   def time = df.format(new Date())
   def changes = new StringBuilder()
-  changes << "<h2>REI v$project.version for $dep_minecraft_version</h2>Updated at <b>$time</b>.<br><a href=\"https://www.github.com/shedaniel/RoughlyEnoughItems/commits/$branch\">Click here for changelog</a>"
+  changes << "<h2>REI v${mod_version} for $dep_minecraft_version</h2>Updated at <b>$time</b>.<br><a href=\"https://www.github.com/shedaniel/RoughlyEnoughItems/commits/$branch\">Click here for changelog</a>"
   def proc = "git log --max-count=200 --pretty=format:%s".execute()
   proc.in.eachLine { line ->
     def processedLine = line.toString()
@@ -139,7 +132,7 @@ task releaseOnCf {
 }
 
 curseforge {
-  if (System.getenv('thakyz_curse_api_key') != null && project.hasProperty('curseforge_project_id')) {
+  if (System.getenv('thakyz_curse_api_key') != null || System.getenv('thakyz_curse_api_key') != null) {
     apiKey = project.hasProperty('thakyz_curse_api_key') ? project.property('thakyz_curse_api_key') : System.getenv('thakyz_curse_api_key')
     //noinspection GroovyAssignabilityCheck
     project {
