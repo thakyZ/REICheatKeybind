@@ -1,5 +1,5 @@
 plugins {
-  id("fabric-loom") version("0.6-SNAPSHOT") apply false
+  id("fabric-loom") version("0.6-SNAPSHOT")
   id("maven-publish")
   id("java")
   id("java-library")
@@ -30,11 +30,13 @@ repositories {
 
 processResources {
   filesMatching('fabric.mod.json') {
-    expand 'mod_version': mod_version
-    expand 'minecraft_version': minecraft_version
-    expand 'dep_minecraft_version': dep_minecraft_version
-    expand 'dep_loader_version': dep_loader_version
-    expand 'dep_fabric_version': dep_fabric_version
+    expand(
+        'mod_version': mod_version,
+        'minecraft_version': minecraft_version,
+        'dep_minecraft_version': dep_minecraft_version,
+        'dep_loader_version': dep_loader_version,
+        'dep_fabric_version': dep_fabric_version
+    )
   }
   inputs.properties(
       'mod_version': mod_version,
@@ -62,7 +64,7 @@ jar {
 dependencies {
   //to change the versions see the gradle.properties file
   minecraft "com.mojang:minecraft:${minecraft_version}"
-  mappings(loom.officialMojangMappings())
+  mappings "net.fabricmc:yarn:${project.minecraft_version}+${project.yarn_mappings}:v2"
   modApi("net.fabricmc:fabric-loader:${loader_version}")
   modApi(fabricApi.module("fabric-api-base", fabric_api_version))
   include(fabricApi.module("fabric-api-base", fabric_api_version))
