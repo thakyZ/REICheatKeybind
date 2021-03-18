@@ -1,7 +1,7 @@
 package xyz.nekogaming.mods.rei.reicheatkeybind.mixins;
 
-import me.sargunvohra.mcmods.autoconfig1u.ConfigData;
-import me.sargunvohra.mcmods.autoconfig1u.annotation.ConfigEntry;
+import me.shedaniel.autoconfig.ConfigData;
+import me.shedaniel.autoconfig.annotation.ConfigEntry;
 import me.shedaniel.rei.api.ConfigObject;
 import me.shedaniel.rei.impl.ConfigObjectImpl;
 import org.spongepowered.asm.mixin.Mixin;
