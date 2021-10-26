@@ -2,8 +2,8 @@ package xyz.nekogaming.mods.rei.reicheatkeybind.mixins;
 
 import me.shedaniel.autoconfig.ConfigData;
 import me.shedaniel.autoconfig.annotation.ConfigEntry;
-import me.shedaniel.rei.api.ConfigObject;
-import me.shedaniel.rei.impl.ConfigObjectImpl;
+import me.shedaniel.rei.api.client.config.ConfigObject;
+import me.shedaniel.rei.impl.client.config.ConfigObjectImpl;
 import org.spongepowered.asm.mixin.Mixin;
 import xyz.nekogaming.mods.rei.reicheatkeybind.REICheatKeybind;
 import xyz.nekogaming.mods.rei.reicheatkeybind.api.ICustomConfig;

@@ -1,6 +1,6 @@
 package xyz.nekogaming.mods.rei.reicheatkeybind.api;
 
-import me.shedaniel.rei.api.ConfigObject;
+import me.shedaniel.rei.api.client.config.ConfigObject;
 
 public interface ICustomConfig {
   static REICheatKeybindConfig.Config getConfig() {
