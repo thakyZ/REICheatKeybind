@@ -1,21 +1,19 @@
-plugins {
-  id("fabric-loom") version("0.6-SNAPSHOT")
-  id("maven-publish")
-  id("java")
-  id("java-library")
-  id("com.matthewprenger.cursegradle") version("1.4.0")
-}
-
 import java.text.SimpleDateFormat
 
-java {
-  sourceCompatibility = JavaVersion.VERSION_1_8
-  targetCompatibility = JavaVersion.VERSION_1_8
+plugins {
+  id "fabric-loom" version"0.7-SNAPSHOT"
+  id "maven-publish"
+  id "java"
+  id "java-library"
+  id "com.matthewprenger.cursegradle" version "1.4.0"
 }
 
-group = maven_group
-archivesBaseName = mod_id
-version = "${mod_version}+${minecraft_version}"
+sourceCompatibility = JavaVersion.VERSION_1_8
+targetCompatibility = JavaVersion.VERSION_1_8
+
+group = project.maven_group
+archivesBaseName = project.mod_id
+version = "${project.mod_version}+${project.comp_minecraft_version}"
 
 apply plugin: 'maven-publish'
 apply plugin: 'fabric-loom'
@@ -29,75 +27,63 @@ repositories {
 processResources {
   filesMatching('fabric.mod.json') {
     expand(
-        'mod_version': mod_version,
-        'minecraft_version': minecraft_version,
-        'dep_minecraft_version': dep_minecraft_version,
-        'dep_loader_version': dep_loader_version,
-        'dep_fabric_version': dep_fabric_version
+        'mod_version': project.mod_version,
+        'minecraft_version': project.minecraft_version,
+        'dep_minecraft_version': project.dep_minecraft_version,
+        'dep_loader_version': project.dep_loader_version,
+        'dep_fabric_version': project.dep_fabric_version
     )
   }
   inputs.properties(
-      'mod_version': mod_version,
-      'minecraft_version': minecraft_version,
-      'dep_minecraft_version': dep_minecraft_version,
-      'dep_loader_version': dep_loader_version,
-      'dep_fabric_version': dep_fabric_version
+      'mod_version': project.mod_version,
+      'minecraft_version': project.minecraft_version,
+      'dep_minecraft_version': project.dep_minecraft_version,
+      'dep_loader_version': project.dep_loader_version,
+      'dep_fabric_version': project.dep_fabric_version
   )
-}
-
-jar {
-  from rootProject.file("LICENSE")
-  exclude("**/*.ase")
-  exclude("**/*.blend")
-  exclude("**/*.blend1")
-  exclude("**/command_block_back.png")
-  exclude("**/command_block_icon.png")
 }
 
 dependencies {
   //to change the versions see the gradle.properties file
-  minecraft "com.mojang:minecraft:${minecraft_version}"
+  minecraft "com.mojang:minecraft:${project.minecraft_version}"
   mappings "net.fabricmc:yarn:${project.minecraft_version}+${project.yarn_mappings}:v2"
-  modApi("net.fabricmc:fabric-loader:${loader_version}")
-  modApi(fabricApi.module("fabric-api-base", fabric_api_version))
-  include(fabricApi.module("fabric-api-base", fabric_api_version))
-  modApi(fabricApi.module("fabric-resource-loader-v0", fabric_api_version))
-  modApi(fabricApi.module("fabric-networking-v0", fabric_api_version))
-  modApi(fabricApi.module("fabric-lifecycle-events-v1", fabric_api_version))
-  modApi(fabricApi.module("fabric-rendering-fluids-v1", fabric_api_version))
-  modApi("me.shedaniel:RoughlyEnoughItems:${rei_version}") {
+  modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
+  modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_api_version}"
+  modImplementation("me.shedaniel:RoughlyEnoughItems:${project.rei_version}") {
     exclude(module: "fabric-api")
   }
-  modRuntime("curse.maven:roughly-searchable-392023:${roughly_searchable_version}") {
-    transitive(false)
-  }
-  modApi("org.jetbrains:annotations:19.0.0")
   modCompileOnly('com.google.code.findbugs:jsr305:3.0.2') {
     transitive(false)
   }
 }
 
-// ensure that the encoding is set to UTF-8, no matter what the system default is
-// this fixes some edge cases with special characters not displaying correctly
-// see http://yodaconditions.net/blog/fix-for-java-file-encoding-problems-with-gradle.html
-tasks.withType(JavaCompile) {
-  options.encoding = "UTF-8"
+tasks.withType(JavaCompile).configureEach {
+  // ensure that the encoding is set to UTF-8, no matter what the system default is
+  // this fixes some edge cases with special characters not displaying correctly
+  // see http://yodaconditions.net/blog/fix-for-java-file-encoding-problems-with-gradle.html
+  // If Javadoc is generated, this must be specified in that task too.
+  it.options.encoding = "UTF-8"
+
+  // The Minecraft launcher currently installs Java 8 for users, so your mod probably wants to target Java 8 too
+  // JDK 9 introduced a new way of specifying this that will make sure no newer classes or methods are used.
+  // We'll use that if it's available, but otherwise we'll use the older option.
+  def targetVersion = 8
+  if (JavaVersion.current().isJava9Compatible()) {
+    it.options.release = targetVersion
+  }
 }
 
-// Loom will automatically attach sourcesJar to a RemapSourcesJar task and to the "build" task
-// if it is present.
-// If you remove this task, sources will not be generated.
-task sourcesJar(type: Jar, dependsOn: classes) {
-  classifier("sources")
-  from sourceSets.main.allSource
+java {
+  // Loom will automatically attach sourcesJar to a RemapSourcesJar task and to the "build" task
+  // if it is present.
+  // If you remove this line, sources will not be generated.
+  withSourcesJar()
 }
 
-runClient {
-  args = ['--username', 'Dev']
-}
-
-minecraft {
-  refmapName = "${mod_id}-refmap.json"
+jar {
+  from("LICENSE") {
+    rename { "${it}_${project.archivesBaseName}"}
+  }
 }
 
 def releaseChangelog = "No changelog"
@@ -118,7 +104,8 @@ task releaseOnCf {
   }
   def time = df.format(new Date())
   def changes = new StringBuilder()
-  changes << "<h2>REI v${mod_version} for $dep_minecraft_version</h2>Updated at <b>$time</b>.<br><a href=\"https://www.github.com/shedaniel/RoughlyEnoughItems/commits/$branch\">Click here for changelog</a>"
+  changes << "<h2>REI Cheat Keybind v${mod_version} for $comp_minecraft_version</h2>Updated at <b>$time</b>.<br><a " +
+    "href=\"https://github.com/thakyZ/REICheatKeybind/commits/$branch\">Click here for changelog</a>"
   def proc = "git log --max-count=200 --pretty=format:%s".execute()
   proc.in.eachLine { line ->
     def processedLine = line.toString()
@@ -132,40 +119,38 @@ task releaseOnCf {
 }
 
 curseforge {
-  if (System.getenv('thakyz_curse_api_key') != null || System.getenv('thakyz_curse_api_key') != null) {
-    apiKey = project.hasProperty('thakyz_curse_api_key') ? project.property('thakyz_curse_api_key') : System.getenv('thakyz_curse_api_key')
-    //noinspection GroovyAssignabilityCheck
-    project {
-      id = "406246"
-      releaseType = "release"
-      changelogType = "html"
-      changelog = releaseChangelog
-      addGameVersion "1.16.5"
-      addGameVersion "1.16.4"
-      addGameVersion "Fabric"
-      addGameVersion "Java 8"
-      relations {
-        requiredDependency "fabric-api"
-        requiredDependency "roughly-enough-items"
-      }
-      mainArtifact(file("${project.buildDir}/libs/${project.archivesBaseName}-${project.version}.jar")) {
-        displayName = "[Fabric $project.minecraft_version] v$project.version"
-      }
-      addArtifact(file("${project.buildDir}/libs/${mod_id}-${project.version}-sources.jar")) {
-        displayName = "[Fabric $project.minecraft_version] v$project.version Sources"
-      }
-      afterEvaluate {
-        uploadTask.dependsOn("build")
-      }
+  apiKey = project.hasProperty("curseForgeApiKey") ? project.curseForgeApiKey : ""
+  //noinspection GroovyAssignabilityCheck
+  project {
+    id = project.id
+    releaseType = project.releaseType
+    changelogType = "html"
+    changelog = releaseChangelog
+    addGameVersion "Fabric"
+    addGameVersion "Java 8"
+    relations {
+      requiredDependency "fabric-api"
+      requiredDependency "roughly-enough-items"
     }
+    if (project.dep_minecraft_version != project.minecraft_version) {
+      addGameVersion project.dep_minecraft_version
+      addGameVersion project.minecraft_version
+    } else {
+      addGameVersion project.minecraft_version
+    }
+    mainArtifact(file("${project.buildDir}/libs/${project.archivesBaseName}-${project.version}.jar")) {
+      displayName = "[Fabric $project.minecraft_version] v$project.comp_minecraft_version"
+    }
+    addArtifact(file("${project.buildDir}/libs/${project.archivesBaseName}-${project.version}-sources.jar")) {
+      displayName = "[Fabric $project.minecraft_version] v$project.comp_minecraft_version Sources"
+    }
+    afterEvaluate {
+      uploadTask.dependsOn("build")
+    }
+    //noinspection GroovyAssignabilityCheck
     options {
       forgeGradleIntegration = false
-      debug = 'true'.equalsIgnoreCase(upload_debug)
     }
-  }
-  options {
-    forgeGradleIntegration = false
-    javaVersionAutoDetect = false
   }
 }
 
