@@ -52,6 +52,9 @@ dependencies {
   modImplementation("me.shedaniel:RoughlyEnoughItems:${project.rei_version}") {
     exclude(module: "fabric-api")
   }
+  //modImplementation("curse.maven:roughly-searchable-392023:${project.roughly_searchable_version}") {
+  //  exclude(module: "fabric-api")
+  //}
   modCompileOnly('com.google.code.findbugs:jsr305:3.0.2') {
     transitive(false)
   }
